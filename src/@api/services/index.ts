@@ -1,3 +1,4 @@
-import { UserTestService } from './user-test.service';
+import { AuthService } from './auth.service';
+import { UserService } from './user.service';
 
-export const AllServices = [UserTestService];
+export const AllServices = [UserService, AuthService];

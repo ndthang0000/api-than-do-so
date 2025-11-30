@@ -1,3 +1,4 @@
-import { UserTestController } from './user-test.controller';
+import { AuthController } from './auth.controller';
+import { UserController } from './user.controller';
 
-export const AllControllers = [UserTestController];
+export const AllControllers = [UserController, AuthController];

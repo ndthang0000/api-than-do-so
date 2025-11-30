@@ -1,8 +1,8 @@
-import { UserTest, UserTestSchema } from './user-test.schema';
+import { User, UserSchema } from './user.schema';
 
 export const allSchemas = [
 	{
-		name: UserTest.name,
-		schema: UserTestSchema,
+		name: User.name,
+		schema: UserSchema,
 	},
 ];

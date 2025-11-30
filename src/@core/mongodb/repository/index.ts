@@ -1,3 +1,3 @@
-import { UserTestRepository } from './user-test.repository';
+import { UserRepository } from './user.repository';
 
-export const AllRepository = [UserTestRepository];
+export const AllRepository = [UserRepository];
