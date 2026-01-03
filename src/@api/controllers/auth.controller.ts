@@ -3,9 +3,9 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from '@service/auth.service';
 import { responseData } from '@share/interfaces/response-face';
 import { FirebaseService } from '@core/infrastructure/firebase-admin.service';
-import { LoginDto, SocialDto } from '@dto/auth/login.dto';
+import { DeviceLoginDto, LoginDto, SocialDto } from '@dto/auth/login.dto';
 
-@Controller('auths')
+@Controller('auth')
 export class AuthController {
 	constructor(
 		private readonly authService: AuthService,
@@ -25,5 +25,17 @@ export class AuthController {
 		const { email, password } = dto;
 		const token = await this.authService.login(email, password);
 		return responseData(token, 'Đăng nhập thành công');
+	}
+
+	@Post('/device-login')
+	async deviceLogin(@Body() dto: DeviceLoginDto) {
+		const token = await this.authService.deviceLogin(dto);
+		return responseData(token, 'Đăng nhập thiết bị thành công');
+	}
+
+	@Post('/refresh-token')
+	async refreshToken(@Body() dto: { refreshToken: string }) {
+		const token = await this.authService.refreshToken(dto.refreshToken);
+		return responseData(token);
 	}
 }

@@ -36,6 +36,7 @@ export default function coreConfig() {
 				pass: process.env.MAIL_PASS,
 			},
 		},
+		cryptoKey: process.env.APP_CRYPTO_KEY || 'default_crypto_key_please_change',
 	};
 }
 export const envData = coreConfig();

@@ -8,6 +8,9 @@ import { envData } from '@core/config/core.config';
 import * as bcrypt from 'bcrypt';
 import { ACCOUNT_STATUS_ENUM } from '../constants/user.constants';
 import { UserService } from './user.service';
+import { DeviceLoginDto } from '@dto/auth/login.dto';
+import crypto from 'crypto';
+import { USER_ROLE_ENUM } from '../@guard/role.constant';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +28,7 @@ export class AuthService {
 			email: user.email,
 			session: session,
 			avatar: user.avatar,
+			deviceId: user.deviceId,
 		};
 	}
 
@@ -100,5 +104,71 @@ export class AuthService {
 			expiresIn: envData.jwt.refreshJwtExpiresTime as any, // Use the configured JWT expiration time
 		});
 		return { accessToken, refreshToken, user };
+	}
+
+	async deviceLogin(dto: DeviceLoginDto) {
+		const { deviceId, signature, timestamp } = dto;
+		const APP_CRYPTO_KEY = envData.cryptoKey;
+		console.log(APP_CRYPTO_KEY);
+		const now = Date.now();
+		if (now - timestamp > 5 * 60 * 1000) {
+			throw new UnauthorizedException('Expired request');
+		}
+
+		const message = `${deviceId}|${timestamp}`;
+		const expectedSignature = crypto.createHmac('sha256', APP_CRYPTO_KEY).update(message).digest('hex');
+		if (signature !== expectedSignature) {
+			throw new UnauthorizedException('Invalid signature');
+		}
+
+		let user = await this.userRepository.findOne({ deviceId });
+		if (!user) {
+			//create new user
+			user = await this.userRepository.add({
+				isVerifyEmail: false,
+				code: this.userService.generateCodeUser(),
+				deviceId: deviceId,
+				role: USER_ROLE_ENUM.GUEST,
+			});
+		}
+		const session = uuidv4();
+
+		const payload = this.preparePayload(user, session);
+
+		const secretKey = getSecretKey(user.role, 'access');
+		const refreshSecretKey = getSecretKey(user.role, 'refresh');
+
+		const accessToken = this.jwtService.sign(payload, {
+			secret: secretKey,
+			expiresIn: envData.jwt.jwtExpiresTime as any, // Use the configured JWT expiration time
+		});
+		const refreshToken = this.jwtService.sign(payload, {
+			secret: refreshSecretKey,
+			expiresIn: envData.jwt.refreshJwtExpiresTime as any, // Use the configured JWT expiration time
+		});
+		return { accessToken, refreshToken, user };
+	}
+
+	async refreshToken(refreshToken: string) {
+		try {
+			const decoded = this.jwtService.decode(refreshToken);
+			const role = decoded['role'];
+			const secretKey = getSecretKey(role, 'refresh');
+			const verified = this.jwtService.verify(refreshToken, { secret: secretKey });
+			const session = uuidv4();
+			const payload = this.preparePayload(verified, session);
+			const accessSecretKey = getSecretKey(role, 'access');
+			const newAccessToken = this.jwtService.sign(payload, {
+				secret: accessSecretKey,
+				expiresIn: envData.jwt.jwtExpiresTime as any,
+			});
+			const newRefreshToken = this.jwtService.sign(payload, {
+				secret: secretKey,
+				expiresIn: envData.jwt.refreshJwtExpiresTime as any,
+			});
+			return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+		} catch (e) {
+			throw new UnauthorizedException('Invalid refresh token');
+		}
 	}
 }

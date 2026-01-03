@@ -50,6 +50,11 @@ export class BaseRepository<T> {
 		return await query.exec();
 	}
 
+	async findOneAndUpdate(filter: FilterQuery<T>, data: UpdateQuery<T>, options = { new: true }): Promise<T | null> {
+		let query = this.model.findOneAndUpdate(filter, data, options);
+		return await query.exec();
+	}
+
 	async updateOne(filter: FilterQuery<T>, data: UpdateQuery<T>): Promise<UpdateResult> {
 		return await this.model.updateOne(filter, data).exec();
 	}

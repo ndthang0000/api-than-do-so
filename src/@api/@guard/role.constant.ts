@@ -1,5 +1,6 @@
 export enum USER_ROLE_ENUM {
 	USER = 'USER',
+	GUEST = 'GUEST',
 }
 
 export enum ADMIN_ROLE_ENUM {
@@ -7,11 +8,12 @@ export enum ADMIN_ROLE_ENUM {
 }
 
 export enum ALL_ROLE_ENUM {
+	GUEST = 'GUEST',
 	USER = 'USER',
 	ADMIN = 'ADMIN',
 }
 
-export type USER_ROLE = USER_ROLE_ENUM.USER;
+export type USER_ROLE = USER_ROLE_ENUM.USER | USER_ROLE_ENUM.GUEST;
 
 export type ADMIN_ROLE = ADMIN_ROLE_ENUM.ADMIN;
 

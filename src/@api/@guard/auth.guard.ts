@@ -36,6 +36,7 @@ export class AuthGuard implements CanActivate {
 		if (!rawToken.startsWith('Bearer ')) return false;
 
 		const token = rawToken.split(' ')[1];
+
 		const requiredRole = (requiredRoles && requiredRoles.length) > 0 ? requiredRoles : null;
 
 		// required role

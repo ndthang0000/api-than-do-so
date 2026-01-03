@@ -7,20 +7,19 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true })
 export class User {
-	@Prop()
-	name: string;
+	@Prop({ required: false })
+	name?: string;
 
-	@Prop()
-	password: string;
+	@Prop({ required: false })
+	password?: string;
 
-	@Prop({ required: true, unique: true })
-	email: string;
+	@Prop({ required: false })
+	email?: string;
 
-	@Prop()
-	birthdate: string;
-
-	@Prop()
-	avatar: string;
+	@Prop({ required: false })
+	birthdate?: string;
+	@Prop({ required: false })
+	avatar?: string;
 
 	@Prop({ enum: USER_ROLE_ENUM, default: USER_ROLE_ENUM.USER })
 	role: string;
@@ -29,7 +28,7 @@ export class User {
 	status: string;
 
 	@Prop({ default: false })
-	isPremium: boolean;
+	isPremium?: boolean;
 
 	@Prop()
 	isVerifyEmail: boolean;
@@ -37,14 +36,14 @@ export class User {
 	@Prop({ enum: GENDER_ENUM, default: GENDER_ENUM.NOT_SET })
 	gender: string;
 
-	@Prop()
-	lastScanDate: Date;
-
-	@Prop({ default: 0 })
-	scanCountToday: number;
+	@Prop({ required: false })
+	lastScanDate?: Date;
 
 	@Prop()
-	code: number;
+	code?: number;
+
+	@Prop({ required: true, unique: true })
+	deviceId: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -19,4 +19,21 @@ export class SocialDto {
 	@IsNotEmpty()
 	@ApiProperty({ required: true, example: 'token-social' })
 	token: string;
+}
+
+export class DeviceLoginDto {
+	@IsString()
+	@IsNotEmpty()
+	@ApiProperty({ required: true, example: 'device-unique-id' })
+	deviceId: string;
+
+	@IsNumber()
+	@IsNotEmpty()
+	@ApiProperty({ required: true, example: '1700000000' })
+	timestamp: number;
+
+	@IsString()
+	@IsNotEmpty()
+	@ApiProperty({ required: true, example: 'generated-signature' })
+	signature: string;
 }

@@ -8,6 +8,7 @@ import coreConfig, { envData } from './config/core.config';
 import { AllRepository } from './mongodb/repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { allSchemas } from './mongodb/schemas';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
 	imports: [
@@ -25,6 +26,7 @@ import { allSchemas } from './mongodb/schemas';
 				port: envData.redis.port,
 			},
 		}),
+		EventEmitterModule.forRoot(),
 	],
 	providers: [RedisCache, RedlockService, S3Service, ...AllRepository],
 	exports: [ConfigModule, CoreModule, RedisCache, RedlockService, S3Service, ...AllRepository],
