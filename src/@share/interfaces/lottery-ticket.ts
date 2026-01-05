@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export type Region = 'north' | 'central' | 'south';
 
 export enum REGION_ENUM {
@@ -44,8 +46,8 @@ export const LOTTERY_SCHEDULE: LotteryScheduleEntry[] = [
 	{
 		region: 'south',
 		regionName: 'Xổ Số Miền Nam',
-		time: '16:15',
-		end: '16h35',
+		time: '14:00',
+		end: '15:00',
 		schedule: [
 			{ date: 'monday', provinces: ['TP.HCM', 'Đồng Tháp', 'Cà Mau'] },
 			{ date: 'tuesday', provinces: ['Bến Tre', 'Vũng Tàu', 'Bạc Liêu'] },
@@ -88,5 +90,60 @@ export const LOTTERY_SCHEDULE: LotteryScheduleEntry[] = [
 		],
 	},
 ];
+
+export const createDefaultLotteryResult = (region: Region, date: string) => {
+	const dayOfWeek = new Date(date.split('-').reverse().join('-')).getDay(); // 0-6
+	const scheduleEntry = LOTTERY_SCHEDULE.find(entry => entry.region === region);
+	if (!scheduleEntry) return null;
+	const scheduleForDay = scheduleEntry.schedule.find(s => {
+		const weekdayMap: Record<Weekday, number> = {
+			sunday: 0,
+			monday: 1,
+			tuesday: 2,
+			wednesday: 3,
+			thursday: 4,
+			friday: 5,
+			saturday: 6,
+		};
+		return weekdayMap[s.date] === dayOfWeek;
+	});
+	if (!scheduleForDay) return [];
+
+	const exampleData: any[] = [];
+	for (const province of scheduleForDay.provinces) {
+		const prizesSouthAndCentral = {
+			specialCode: '',
+			DB: ['*'],
+			G1: ['*'],
+			G2: ['*'],
+			G3: ['*', '*'],
+			G4: ['*', '*', '*', '*', '*', '*', '*'],
+			G5: ['*'],
+			G6: ['*', '*', '*'],
+			G7: ['*'],
+			G8: ['*', '*', '*', '*'],
+		};
+		const prizesNorth = {
+			specialCode: '',
+			DB: ['*'],
+			G1: ['*'],
+			G2: ['*', '*'],
+			G3: ['*', '*', '*', '*', '*', '*'],
+			G4: ['*', '*', '*', '*'],
+			G5: ['*', '*', '*', '*', '*', '*'],
+			G6: ['*', '*', '*'],
+			G7: ['*', '*', '*', '*'],
+		};
+		exampleData.push({
+			_id: uuidv4(),
+			region,
+			date,
+			station: province,
+			prizes: region === 'north' ? prizesNorth : prizesSouthAndCentral,
+			type: '',
+		});
+	}
+	return exampleData;
+};
 
 export const allProvinces = LOTTERY_SCHEDULE.flatMap(entry => entry.schedule.flatMap(s => s.provinces));

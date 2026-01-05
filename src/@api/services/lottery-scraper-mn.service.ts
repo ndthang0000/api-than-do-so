@@ -1,6 +1,6 @@
 //This is crawler for vesominhngoc.com.vn
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { LotteryResult } from '@core/mongodb/schemas/lottery-result.schema';
@@ -10,17 +10,18 @@ import RedisCache from '@core/infrastructure/redis.cache';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import moment from 'moment';
 import { sleep } from '@core/utils/sleep';
+import { LotteryUpdatePayload } from '@share/interfaces/lottery-realtime';
 
 const CRAWL_CONFIG_LIVE = {
-	south: 'https://vesominhngoc.com.vn/ket-qua-xo-so-mien-nam-kqxs-mn/ngay-03-01-2026',
-	central: 'https://vesominhngoc.com.vn/ket-qua-xo-so-mien-trung-kqxs-mt/ngay-03-01-2026',
-	north: 'https://vesominhngoc.com.vn/ket-qua-xo-so-mien-bac-kqxs-mb/ngay-03-01-2026',
+	south: 'https://vesominhngoc.com.vn/truc-tiep-xo-so-mien-nam-xsmn-xstt-mn',
+	central: 'https://vesominhngoc.com.vn/truc-tiep-xo-so-mien-trung-xsmt-xstt-mt',
+	north: 'https://vesominhngoc.com.vn/truc-tiep-xo-so-mien-bac-xsmb-xstt-mb',
 };
 
 // Map tên giải trên web sang Key trong Model của bạn
 
 @Injectable()
-export class LotteryScraperService {
+export class LotteryScraperService implements OnModuleInit {
 	private readonly logger = new Logger(LotteryScraperService.name);
 	private readonly userAgents = [
 		'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
@@ -32,12 +33,31 @@ export class LotteryScraperService {
 		@Inject() private readonly redisCache: RedisCache,
 		@Inject() private readonly eventEmitter: EventEmitter2,
 	) {
-		// this.redisCache.deleteAllWithPrefixAndSuffix('lottery');
+		this.eventEmitter.on('lottery.result.updated', data => {
+			console.log('✅ TEST: Đã nhận được event tại ScraperService!', data);
+		});
 		// this.handleCentral();
 		// this.handleNorth();
 		// this.handleSouth();
 	}
 
+	async onModuleInit() {
+		// run 12213213 sdfsdfsd  sdfsdsd23sdf ưedff sdf sdfsfsd
+		this.logger.log('🚀 LotteryScraperService đã sẵn sàng');
+		// Test thử sau 3 giây để chắc chắn Gateway đã up
+		// setTimeout(() => {
+		//   this.fakeEventEmitForTest(0);
+		// }, 3000);
+		// setTimeout(() => {
+		//   this.fakeEventEmitForTest(1);
+		// }, 10000);
+		// setTimeout(() => {
+		//   this.fakeEventEmitForTest(2);
+		// }, 15000);
+		// setTimeout(() => {
+		//   this.fakeEventEmitForTest(3);
+		// }, 20000);
+	}
 	// Hàm tổng cho phép gọi crawl bất kỳ miền nào
 	async crawlLiveRegion(region: 'north' | 'central' | 'south') {
 		try {
@@ -74,6 +94,8 @@ export class LotteryScraperService {
 							// special case for station "TP. HCM"
 							if (stationName === 'TP. HCM') {
 								stationName = 'TP.HCM';
+							} else if (stationName === 'Thừa T. Huế') {
+								stationName = 'TT-Huế';
 							}
 							const type = $(table).find('.loaive').text().trim();
 							if (!stationName) return;
@@ -190,7 +212,7 @@ export class LotteryScraperService {
 	private async saveToDb(results: LotteryResult[]) {
 		for (const res of results) {
 			const cacheKey = `lottery:${res.region}:${res.date}:${res.station}`.replace(/\s+/g, ''); // remove spaces if any
-			const cachedData = null; //await this.redisCache.get(cacheKey);
+			const cachedData = await this.redisCache.get(cacheKey);
 
 			let isChanged = false;
 			if (!cachedData) {
@@ -200,7 +222,7 @@ export class LotteryScraperService {
 			}
 
 			if (isChanged) {
-				//await this.redisCache.set(cacheKey, JSON.stringify(res.prizes), 3600 * 24 * 7); // Lưu cache 7 ngày
+				await this.redisCache.set(cacheKey, JSON.stringify(res.prizes), 3600 * 24 * 7); // Lưu cache 7 ngày
 				//emit event update result
 				this.eventEmitter.emit('lottery.result.updated', {
 					region: res.region,
@@ -249,6 +271,116 @@ export class LotteryScraperService {
 	async handleCentral() {
 		console.log('đang crawl');
 		await this.crawlLiveRegion('central');
+	}
+
+	async fakeEventEmitForTest(index: number = 0) {
+		const payload: LotteryUpdatePayload = {
+			date: '05-01-2026',
+			region: 'south',
+			station: 'TP.HCM',
+			prizes: {
+				DB: ['*'],
+				G1: ['31660'],
+				G2: ['39403'],
+				G3: ['45422', '38044'],
+				G4: ['56004', '83301', '77760', '82893', '31532', '84848', '16286'],
+				G5: ['4656'],
+				G6: ['5655', '4074', '1888'],
+				G7: ['666'],
+				G8: ['26'],
+				specialCode: '',
+			},
+			isLive: true,
+			changes: [
+				{
+					rank: 'G1',
+					index: 0,
+					value: '31660',
+				},
+			],
+		};
+		const fakePayload2: LotteryUpdatePayload = {
+			date: '05-01-2026',
+			region: 'south',
+			station: 'Đồng Tháp',
+			prizes: {
+				DB: ['*'],
+				G1: ['*'],
+				G2: ['*'],
+				G3: ['01587', '*'],
+				G4: ['30067', '17785', '19439', '22106', '60895', '44504', '17408'],
+				G5: ['6380'],
+				G6: ['4755', '6251', '8451'],
+				G7: ['036'],
+				G8: ['19'],
+				specialCode: '',
+			},
+			isLive: false,
+			changes: [
+				{
+					rank: 'G3',
+					index: 0,
+					value: '83250',
+				},
+			],
+		};
+		const fakePayload3: LotteryUpdatePayload = {
+			date: '05-01-2026',
+			region: 'south',
+			station: 'Đồng Tháp',
+			prizes: {
+				DB: ['*'],
+				G1: ['*'],
+				G2: ['53424'],
+				G3: ['01587', '83250'],
+				G4: ['30067', '17785', '19439', '22106', '60895', '44504', '17408'],
+				G5: ['6380'],
+				G6: ['4755', '6251', '8451'],
+				G7: ['036'],
+				G8: ['19'],
+				specialCode: '',
+			},
+			isLive: false,
+			changes: [
+				{
+					rank: 'G2',
+					index: 0,
+					value: '54322',
+				},
+			],
+		};
+		const fakePayload4: LotteryUpdatePayload = {
+			date: '05-01-2026',
+			region: 'south',
+			station: 'Cà Mau',
+			prizes: {
+				DB: ['*'],
+				G1: ['*'],
+				G2: ['*'],
+				G3: ['*', '*'],
+				G4: ['37310', '33008', '09632', '25717', '69844', '45236', '58723'],
+				G5: ['4902'],
+				G6: ['0118', '6606', '3526'],
+				G7: ['167'],
+				G8: ['31'],
+				specialCode: '',
+			},
+			isLive: false,
+			changes: [
+				{
+					rank: 'G4',
+					index: 5,
+					value: '45236',
+				},
+				{
+					rank: 'G4',
+					index: 6,
+					value: '58723',
+				},
+			],
+		};
+		const testPayloads = [payload, fakePayload2, fakePayload3, fakePayload4];
+		this.eventEmitter.emit('lottery.result.updated', testPayloads[index]);
 	}
 
 	async crawlHistory(region: 'north' | 'central' | 'south', startDateStr: string) {

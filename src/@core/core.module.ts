@@ -9,6 +9,7 @@ import { AllRepository } from './mongodb/repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { allSchemas } from './mongodb/schemas';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { LotteryLiveGateway } from './infrastructure/lottery-live.gateway';
 
 @Module({
 	imports: [
@@ -28,7 +29,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 		}),
 		EventEmitterModule.forRoot(),
 	],
-	providers: [RedisCache, RedlockService, S3Service, ...AllRepository],
-	exports: [ConfigModule, CoreModule, RedisCache, RedlockService, S3Service, ...AllRepository],
+	providers: [RedisCache, RedlockService, S3Service, LotteryLiveGateway, ...AllRepository],
+	exports: [ConfigModule, CoreModule, RedisCache, RedlockService, S3Service, LotteryLiveGateway, ...AllRepository],
 })
 export class CoreModule {}

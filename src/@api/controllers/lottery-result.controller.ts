@@ -3,11 +3,15 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 import { LotteryResultService } from '@service/lottery-result.service';
-import { allProvinces, DrawStatus, LOTTERY_SCHEDULE, LotteryScheduleEntry } from '@share/interfaces/lottery-ticket';
+import {
+	allProvinces,
+	createDefaultLotteryResult,
+	DrawStatus,
+	LOTTERY_SCHEDULE,
+} from '@share/interfaces/lottery-ticket';
 import { responseData, responseMessage } from '@share/interfaces/response-face';
 import moment from 'moment';
 import { AuthGuard } from '../@guard/auth.guard';
-import { RolesGuard } from '../@guard/role.guard';
 
 @Controller('lottery-results')
 export class LotteryResultController {
@@ -60,6 +64,11 @@ export class LotteryResultController {
 
 		const result = await this.lotteryResultService.getLiveLotteryResult(dto.region, dto.date, dto.station);
 
+		if (status === DrawStatus.LIVE && result.length === 0) {
+			// set default data for LIVE status
+			const exampleData = createDefaultLotteryResult(dto.region, dto.date);
+			return responseData({ result: exampleData, status });
+		}
 		return responseData({ result, status });
 	}
 }
