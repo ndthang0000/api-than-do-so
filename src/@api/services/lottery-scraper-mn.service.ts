@@ -224,12 +224,37 @@ export class LotteryScraperService implements OnModuleInit {
 			if (isChanged) {
 				await this.redisCache.set(cacheKey, JSON.stringify(res.prizes), 3600 * 24 * 7); // Lưu cache 7 ngày
 				//emit event update result
-				this.eventEmitter.emit('lottery.result.updated', {
-					region: res.region,
+
+				const oldPrizes = cachedData ? JSON.parse(cachedData) : null;
+				const changes: Array<{ rank: string; index: number; value: string }> = [];
+
+				if (res.prizes && typeof res.prizes === 'object') {
+					for (const rankKey of Object.keys(res.prizes)) {
+						if (rankKey === 'specialCode') continue; // skip specialCode
+						const newArr: any[] = Array.isArray(res.prizes[rankKey]) ? res.prizes[rankKey] : [];
+						const oldArr: any[] = oldPrizes && Array.isArray(oldPrizes[rankKey]) ? oldPrizes[rankKey] : [];
+
+						const maxLen = Math.max(newArr.length, oldArr.length);
+						for (let i = 0; i < maxLen; i++) {
+							const newVal = newArr[i];
+							const oldVal = oldArr[i];
+
+							// Consider a change when values are different and newVal is present
+							if (newVal !== oldVal && newVal !== undefined && newVal !== null && newVal !== '') {
+								changes.push({ rank: rankKey, index: i, value: String(newVal) });
+							}
+						}
+					}
+				}
+				const payload: LotteryUpdatePayload = {
 					date: res.date,
+					region: res.region as 'north' | 'central' | 'south',
 					station: res.station,
 					prizes: res.prizes,
-				});
+					isLive: res.isLive,
+					changes: changes,
+				};
+				this.eventEmitter.emit('lottery.result.updated', payload);
 
 				if (
 					await this.lotteryRepository.findOne({ date: res.date, station: res.station, region: res.region })
@@ -255,19 +280,19 @@ export class LotteryScraperService implements OnModuleInit {
 	}
 
 	// Miền Nam quay lúc 16:10
-	@Cron('*/10 15-40 16 * * *')
+	// @Cron('*/10 15-40 16 * * *')
 	async handleSouth() {
 		await this.crawlLiveRegion('south');
 	}
 
 	// Miền Bắc quay lúc 18:10
-	@Cron('*/10 15-40 18 * * *')
+	// @Cron('*/10 15-40 18 * * *')
 	async handleNorth() {
 		await this.crawlLiveRegion('north');
 	}
 
 	// Miền Trung quay lúc 17:10
-	@Cron('*/10 15-40 17 * * *')
+	// @Cron('*/10 15-40 17 * * *')
 	async handleCentral() {
 		console.log('đang crawl');
 		await this.crawlLiveRegion('central');
