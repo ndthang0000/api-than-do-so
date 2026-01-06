@@ -12,6 +12,7 @@ import {
 import { responseData, responseMessage } from '@share/interfaces/response-face';
 import moment from 'moment';
 import { AuthGuard } from '../@guard/auth.guard';
+import { Types } from 'mongoose';
 
 @Controller('lottery-results')
 export class LotteryResultController {
@@ -53,12 +54,18 @@ export class LotteryResultController {
 
 		// 3. Gọi Service lấy dữ liệu theo 3 nguồn (Cache -> DB -> Default)
 		const result = await this.lotteryResultService.getLiveLotteryResult(region, date, station);
+		const finalResult = result.map((r: any) => {
+			return {
+				...r,
+				...(r._id ? {} : { _id: new Types.ObjectId() }),
+			};
+		});
 
 		// 4. Logic bổ sung: Nếu là UPCOMING thì có thể trả về mảng rỗng hoặc default tùy bạn
 		if (status === DrawStatus.UPCOMING) {
 			return responseData({ result: [], status });
 		}
 
-		return responseData({ result, status });
+		return responseData({ result: finalResult, status });
 	}
 }
