@@ -32,7 +32,7 @@ export class LotteryResult {
 	isLive: boolean;
 
 	@Prop({ default: null, type: String, required: false })
-	type: string;
+	type?: string;
 }
 
 export const LotteryResultSchema = SchemaFactory.createForClass(LotteryResult);

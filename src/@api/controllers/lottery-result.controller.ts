@@ -21,54 +21,44 @@ export class LotteryResultController {
 	@ApiBearerAuth()
 	@UseGuards(AuthGuard)
 	async getLiveLotteryResult(@Query() dto: LiveLotteryResultDto) {
-		// validate date not in future
-		if (moment(dto.date, 'DD-MM-YYYY').isAfter(moment())) {
-			return responseData({ result: null, status: DrawStatus.UPCOMING });
+		const { region, date, station } = dto;
+		const today = moment().format('DD-MM-YYYY');
+		const isToday = date === today;
+
+		// 1. Validate ngày tương lai
+		if (moment(date, 'DD-MM-YYYY').isAfter(moment(), 'day')) {
+			return responseData({ result: [], status: DrawStatus.UPCOMING });
 		}
 
-		// validate station if have
-		if (dto.station) {
-			if (allProvinces.indexOf(dto.station) === -1) {
-				return responseMessage('Invalid station', false);
-			}
-		}
-
+		// 2. Xác định trạng thái phiên quay (LIVE, UPCOMING, FINISHED)
 		let status: DrawStatus = DrawStatus.FINISHED;
 
-		const isSelectToday = moment(dto.date, 'DD-MM-YYYY').isSame(moment(), 'day');
+		if (isToday) {
+			const schedule = LOTTERY_SCHEDULE.find(s => s.region === region);
+			if (!schedule) {
+				return responseMessage('Invalid region', false);
+			}
+			const drawTime = moment(`${moment().format('YYYY-MM-DD')} ${schedule.time}`, 'YYYY-MM-DD HH:mm');
+			const startTime = moment(drawTime).subtract(5, 'minutes');
+			const endTime = moment(drawTime).add(35, 'minutes'); // Tăng lên 35p cho chắc chắn
 
-		if (isSelectToday) {
-			const dataRegion = LOTTERY_SCHEDULE.find(item => item.region === dto.region) || LOTTERY_SCHEDULE[0];
-			// check time before draw time 5 minute -> return upcoming
-			status = DrawStatus.LIVE;
-			if (
-				moment().isBefore(
-					moment(`${moment().format('YYYY-MM-DD')} ${dataRegion.time}`, 'YYYY-MM-DD HH:mm').subtract(
-						5,
-						'minutes',
-					),
-				)
-			) {
+			if (moment().isBefore(startTime)) {
 				status = DrawStatus.UPCOMING;
-			} else if (
-				moment().isAfter(
-					moment(`${moment().format('YYYY-MM-DD')} ${dataRegion.time}`, 'YYYY-MM-DD HH:mm').add(
-						25,
-						'minutes',
-					),
-				)
-			) {
+			} else if (moment().isBetween(startTime, endTime)) {
+				status = DrawStatus.LIVE;
+			} else {
 				status = DrawStatus.FINISHED;
 			}
 		}
 
-		const result = await this.lotteryResultService.getLiveLotteryResult(dto.region, dto.date, dto.station);
+		// 3. Gọi Service lấy dữ liệu theo 3 nguồn (Cache -> DB -> Default)
+		const result = await this.lotteryResultService.getLiveLotteryResult(region, date, station);
 
-		if (status === DrawStatus.LIVE && result.length === 0) {
-			// set default data for LIVE status
-			const exampleData = createDefaultLotteryResult(dto.region, dto.date);
-			return responseData({ result: exampleData, status });
+		// 4. Logic bổ sung: Nếu là UPCOMING thì có thể trả về mảng rỗng hoặc default tùy bạn
+		if (status === DrawStatus.UPCOMING) {
+			return responseData({ result: [], status });
 		}
+
 		return responseData({ result, status });
 	}
 }
