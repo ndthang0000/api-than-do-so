@@ -44,7 +44,7 @@ export class TicketService {
 			page: query.page,
 			limit: query.limit,
 			filter: query.filter,
-			sortBy: query.sortBy,
+			sortBy: query.order,
 			populate: query.populate,
 		});
 	}
