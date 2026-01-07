@@ -11,6 +11,11 @@ export const getSecretKey = (role: string = 'USER', type: 'access' | 'refresh') 
 				return envData.jwt.secretUser;
 			}
 			return envData.jwt.refreshSecretUser;
+		case USER_ROLE_ENUM.GUEST:
+			if (type === 'access') {
+				return envData.jwt.secretUser;
+			}
+			return envData.jwt.refreshSecretUser;
 		case ADMIN_ROLE_ENUM.ADMIN:
 			if (type === 'access') {
 				return envData.jwt.secretAdmin;

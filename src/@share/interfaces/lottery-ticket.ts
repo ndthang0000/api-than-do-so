@@ -7,6 +7,13 @@ export enum REGION_ENUM {
 	CENTRAL = 'central',
 	SOUTH = 'south',
 }
+
+export enum WIN_STATUS_ENUM {
+	WIN = 'WIN',
+	LOSE = 'LOSE',
+	PENDING = 'PENDING',
+}
+
 export type Weekday = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
 
 export const WEEKDAY_LABEL_MAP: Record<Weekday, string> = {

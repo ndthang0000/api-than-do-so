@@ -25,7 +25,6 @@ export class AuthService {
 		return {
 			role: user.role,
 			id: user.id,
-			email: user.email,
 			session: session,
 			avatar: user.avatar,
 			deviceId: user.deviceId,
@@ -109,7 +108,6 @@ export class AuthService {
 	async deviceLogin(dto: DeviceLoginDto) {
 		const { deviceId, signature, timestamp } = dto;
 		const APP_CRYPTO_KEY = envData.cryptoKey;
-		console.log(APP_CRYPTO_KEY);
 		const now = Date.now();
 		if (now - timestamp > 5 * 60 * 1000) {
 			throw new UnauthorizedException('Expired request');

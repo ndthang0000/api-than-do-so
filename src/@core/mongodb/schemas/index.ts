@@ -1,5 +1,6 @@
 import { User, UserSchema } from './user.schema';
 import { LotteryResult, LotteryResultSchema } from './lottery-result.schema';
+import { Ticket, TicketSchema } from './ticket.schema';
 
 export const allSchemas = [
 	{
@@ -9,5 +10,9 @@ export const allSchemas = [
 	{
 		name: LotteryResult.name,
 		schema: LotteryResultSchema,
+	},
+	{
+		name: Ticket.name,
+		schema: TicketSchema,
 	},
 ];

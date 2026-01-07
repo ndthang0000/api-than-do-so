@@ -2,7 +2,7 @@
 **1. Command generate Entity + repository.**
 - Example: 
 ``` 
-npm run generate-@core-entity -- UserTest "firstName:string,lastName:string,email:string,status:boolean,phoneNumber:number" 
+npm run generate-@core-entity UserTest "firstName:string,lastName:string,email:string,status:boolean,phoneNumber:number" 
 ``` 
 - Note: Entity Name has format PascalCase: UserProfile, PhotoImage...
 
