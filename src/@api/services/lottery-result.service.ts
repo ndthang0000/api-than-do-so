@@ -53,7 +53,6 @@ export class LotteryResultService {
 			// NGUỒN 1: Thử lấy từ Redis (Dữ liệu đang live hoặc vừa live xong)
 			const redisKey = `lottery_live:${region}:${st}:${date}`;
 			const cachedData = await this.redisCache.get(redisKey);
-
 			if (cachedData) {
 				finalResults.push({
 					prizes: {
@@ -70,7 +69,7 @@ export class LotteryResultService {
 			// NGUỒN 2: Thử lấy từ Database (Dữ liệu cũ hoặc đã lưu xong)
 			const dbData = await this.lotteryResultRepo.findOne({ region, date, station: st });
 			if (dbData) {
-				finalResults.push(dbData);
+				finalResults.push({ ...dbData.toObject() });
 				continue;
 			}
 

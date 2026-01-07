@@ -151,7 +151,9 @@ export class AuthService {
 
 	async refreshToken(refreshToken: string) {
 		try {
+			console.log('refreshToken:', refreshToken);
 			const decoded = this.jwtService.decode(refreshToken);
+			console.log(decoded);
 			const role = decoded['role'];
 			const secretKey = getSecretKey(role, 'refresh');
 			const verified = this.jwtService.verify(refreshToken, { secret: secretKey });

@@ -26,7 +26,7 @@ export class LotteryScraperDpService {
 		private readonly eventEmitter: EventEmitter2,
 	) {}
 
-	@Cron('*/2 14-40 00 * * *') // Miền Nam: 16:15 - 16:40
+	@Cron('*/2 14-40 16 * * *') // Miền Nam: 16:15 - 16:40
 	async handleSouthLive() {
 		await this.processRegion('2', 'south');
 	}
@@ -36,7 +36,7 @@ export class LotteryScraperDpService {
 		await this.processRegion('3', 'central');
 	}
 
-	@Cron('*/1 14-40 17 * * *') // Miền Trung: 17:15 - 17:40
+	@Cron('*/1 14-40 18 * * *') // Miền Bắc: 18:15 - 18:40
 	async handleNorthLive() {
 		await this.processRegion('1', 'north');
 	}
@@ -57,21 +57,26 @@ export class LotteryScraperDpService {
 	}
 
 	private async syncStationData(apiItem: any, region: 'north' | 'central' | 'south') {
-		const station = apiItem.LotteryName;
+		const rawName = apiItem.LotteryName;
+		const regex = /\(([^)]+)\)/;
+		const match = rawName.match(regex);
+
+		const station = match ? match[1] : rawName;
 		const date = moment().format('DD-MM-YYYY');
 		const redisKey = `lottery_live:${region}:${station}:${date}`;
 
 		let isChange = false;
 		// 1. Transform dữ liệu từ Đại Phát sang Schema của bạn
 		const currentPrizes = this.transformPrizes(apiItem.LotPrizes, region);
+		const formattedSpecialCodes = this.formatSpecialCodes(apiItem.SpecialCodes);
 		if (region === 'north' && apiItem.SpecialCodes) {
-			currentPrizes.specialCode = apiItem.SpecialCodes;
+			currentPrizes.specialCode = formattedSpecialCodes;
 		}
 		// 2. Lấy dữ liệu cũ từ Redis để so sánh
 		const oldPrizesStr = await this.redisCache.get(redisKey);
 		const oldPrizes = oldPrizesStr ? JSON.parse(oldPrizesStr) : null;
 
-		if (currentPrizes.specialCode && oldPrizes.specialCode !== currentPrizes.specialCode) {
+		if (currentPrizes.specialCode && oldPrizes && oldPrizes.specialCode !== currentPrizes.specialCode) {
 			isChange = true;
 		}
 		// 3. Tìm các thay đổi (Số mới nhảy)
@@ -208,4 +213,26 @@ export class LotteryScraperDpService {
 		// Kiểm tra xem giải đặc biệt (DB) đã có số chưa (không còn là "*")
 		return prizes.DB[0] !== '*';
 	}
+
+	private formatSpecialCodes = (rawCodes: string): string => {
+		if (!rawCodes) return '';
+
+		// 1. Tách chuỗi thành mảng các mã: ["10TK", "13TK", ...]
+		const codes = rawCodes.split(' - ').map(item => item.trim());
+
+		const numbers: string[] = [];
+		let suffix = '';
+
+		codes.forEach(code => {
+			// Regex tách phần số (\d+) và phần chữ ([A-Z]+)
+			const match = code.match(/(\d+)([A-Z]+)/);
+			if (match) {
+				numbers.push(match[1]); // Lấy phần số: 10, 13...
+				suffix = match[2]; // Lấy phần chữ: TK
+			}
+		});
+
+		// 2. Nối các số bằng dấu "-" và cộng hậu tố phía sau
+		return numbers.length > 0 ? `${numbers.join('-')} ${suffix}` : rawCodes;
+	};
 }

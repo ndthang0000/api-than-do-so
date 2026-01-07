@@ -222,7 +222,7 @@ export class LotteryScraperService implements OnModuleInit {
 			}
 
 			if (isChanged) {
-				await this.redisCache.set(cacheKey, JSON.stringify(res.prizes), 3600 * 24 * 7); // Lưu cache 7 ngày
+				await this.redisCache.set(cacheKey, JSON.stringify(res.prizes), 3600 * 24); // Lưu cache 1 ngày
 				//emit event update result
 
 				const oldPrizes = cachedData ? JSON.parse(cachedData) : null;
@@ -255,7 +255,7 @@ export class LotteryScraperService implements OnModuleInit {
 					changes: changes,
 				};
 				this.eventEmitter.emit('lottery.result.updated', payload);
-
+				console.log({ date: res.date, station: res.station, region: res.region });
 				if (
 					await this.lotteryRepository.findOne({ date: res.date, station: res.station, region: res.region })
 				) {
