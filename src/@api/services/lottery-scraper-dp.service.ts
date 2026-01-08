@@ -177,7 +177,7 @@ export class LotteryScraperDpService {
 			const key = mapRank[p.Prize];
 			if (key) {
 				// Đại Phát dùng " - " để phân tách các số trong cùng 1 giải
-				const values = p.Range.split(' - ').map(v => (v.trim() === '---' ? '*' : v.trim()));
+				const values = p.Range.split(' - ').map(v => (v.trim() === '...' ? '*' : v.trim()));
 				result[key] = values;
 			}
 		});
