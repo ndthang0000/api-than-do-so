@@ -4,7 +4,7 @@ import { UpdateTicketDto } from '@dto/ticket/update-ticket.dto';
 import { Ticket, TicketDocument } from '@core/mongodb/schemas/ticket.schema';
 import { TicketRepository } from '@core/mongodb/repository/ticket.repository';
 import { Types } from 'mongoose';
-import { LOTTERY_MESSAGES, PRIZE_WEIGHT } from '@share/constants/lottery-enum';
+import { LOTTERY_MESSAGES, PRIZE_MONEY } from '@share/constants/lottery-enum';
 import { CheckTicketDto } from '@dto/ticket/check-ticket.dto';
 import { LotteryResultService } from './lottery-result.service';
 import { LOTTERY_SCHEDULE } from '@share/interfaces/lottery-ticket';
@@ -95,24 +95,25 @@ export class TicketService {
 		const lottery = results[0];
 
 		let winDetails: string[] = [];
+		let totalWinAmount = 0;
 		let status = 'LOSE';
 
 		// Nếu đã có kết quả (không phải dấu *) thì mới dò
 		if (lottery && !this.isResultEmpty(lottery.prizes)) {
 			winDetails = this.calculateWinning(dto.code, lottery.prizes, dto.region, dto.specialCode || '');
 			status = winDetails.length > 0 ? 'WIN' : 'LOSE';
+
+			if (winDetails.length > 0) {
+				const regionPrize = PRIZE_MONEY[dto.region];
+				totalWinAmount = winDetails.reduce((sum, prizeName) => {
+					return sum + (regionPrize[prizeName] || 0);
+				}, 0);
+			}
 		} else {
 			status = 'PENDING'; // Chờ kết quả live
+			totalWinAmount = 1; // Tạm gán 1 để phân biệt với thua thật sự
 		}
 
-		let maxWeight = PRIZE_WEIGHT['LOSE'];
-		if (status === 'PENDING') {
-			maxWeight = PRIZE_WEIGHT['PENDING'];
-		} else if (winDetails.length > 0) {
-			// Lấy trọng số của giải cao nhất trong các giải trúng
-			const weights = winDetails.map(p => PRIZE_WEIGHT[p] || 0);
-			maxWeight = Math.max(...weights);
-		}
 		// Lưu Ticket vào DB
 		const message = this.getRandomMessage(status);
 
@@ -122,8 +123,9 @@ export class TicketService {
 			prizes: lottery.prizes || {},
 			winDetails: winDetails,
 			message,
-			weight: maxWeight,
+			prizeMoney: totalWinAmount,
 			userId: new Types.ObjectId(userId),
+			durationScan: dto.durationScan,
 		});
 
 		return { ticket, winDetails, status };

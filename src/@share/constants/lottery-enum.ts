@@ -140,18 +140,43 @@ export const LOTTERY_MESSAGES = {
 	],
 };
 
-export const PRIZE_WEIGHT = {
-	DB: 100,
-	'Phụ Đặc biệt': 95,
-	G1: 90,
-	G2: 80,
-	G3: 70,
-	G4: 60,
-	G5: 50,
-	G6: 40,
-	G7: 30,
-	G8: 20,
-	'Khuyến khích': 10,
-	PENDING: 1, // Để vé đang chờ lên trên vé trật
-	LOSE: 0,
+export const PRIZE_MONEY = {
+	south: {
+		DB: 2000000,
+		'Phụ Đặc biệt': 50000, // Thường là 50tr theo quy định chung MN
+		G1: 30000,
+		G2: 15000,
+		G3: 10000,
+		G4: 3000,
+		G5: 1000,
+		G6: 400,
+		G7: 200,
+		G8: 100,
+		'Khuyến khích': 6000, // Thường là 6tr cho MN
+	},
+	central: {
+		DB: 2000000,
+		'Phụ Đặc biệt': 50000,
+		G1: 30000,
+		G2: 15000,
+		G3: 10000,
+		G4: 3000,
+		G5: 1000,
+		G6: 400,
+		G7: 200,
+		G8: 100,
+		'Khuyến khích': 6000,
+	},
+	north: {
+		DB: 500000, // 500 triệu mỗi vé
+		'Giải phụ ĐB': 25000, // 25 triệu (Trùng số ĐB nhưng sai ký hiệu)
+		G1: 10000,
+		G2: 5000,
+		G3: 1000,
+		G4: 400,
+		G5: 200,
+		G6: 100,
+		G7: 40, // Lưu ý: G7 MB là 40k, trong text của bạn ghi 40.000đ
+		'Khuyến khích': 40, // Trùng 2 số cuối giải ĐB: 40k
+	},
 };

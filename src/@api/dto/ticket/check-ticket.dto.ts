@@ -29,4 +29,8 @@ export class CheckTicketDto {
 	@IsOptional()
 	@ApiPropertyOptional({ example: '12' })
 	specialCode?: string;
+
+	@ApiPropertyOptional({})
+	@IsOptional()
+	durationScan?: number;
 }

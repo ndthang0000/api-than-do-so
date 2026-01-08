@@ -47,7 +47,10 @@ export class Ticket {
 	message?: string;
 
 	@Prop()
-	weight?: number;
+	prizeMoney?: number;
+
+	@Prop()
+	durationScan?: number;
 }
 
 export const TicketSchema = SchemaFactory.createForClass(Ticket);

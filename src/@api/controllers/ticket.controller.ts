@@ -19,7 +19,6 @@ import { PaginateTicketDto } from '@dto/ticket/paginate-ticket.dto';
 import { responseData, responseMessage } from '@share/interfaces/response-face';
 import { ConvertSortBy, validateSortBy } from '@share/utils/sortby';
 import omitKey from '@share/interfaces/omit-key.type';
-import { USER_SORT_ENUM } from '../constants/user.constants';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '../@guard/auth.guard';
 import { CheckTicketDto } from '@dto/ticket/check-ticket.dto';
