@@ -129,6 +129,7 @@ export class LotteryScraperDpService {
 				isFinished: true,
 				type: '',
 			};
+			this.eventEmitter.emit(`lottery.finished`, dbPayload);
 			const existing = await this.lotteryRepository.findOne({
 				date: dbPayload.date,
 				station: dbPayload.station,

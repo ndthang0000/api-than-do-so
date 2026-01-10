@@ -1,13 +1,15 @@
 import { TicketRepository } from '@core/mongodb/repository/ticket.repository';
 import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { LotteryUpdatePayload } from '@share/interfaces/lottery-realtime';
 import { WIN_STATUS_ENUM } from '@share/interfaces/lottery-ticket';
 import { TicketService } from './ticket.service';
 import { PRIZE_MONEY } from '@share/constants/lottery-enum';
-import { NotificationRepository } from '@core/mongodb/repository/notification.repository'; // Giả định
-import { UserRepository } from '@core/mongodb/repository/user.repository'; // Giả định
+import { NotificationRepository } from '@core/mongodb/repository/notification.repository';
+import { UserRepository } from '@core/mongodb/repository/user.repository';
 import { FirebaseService } from '@core/infrastructure/firebase-admin.service';
+import { TOPIC_NAME_ENUM } from '@share/constants/notification-enum';
+import { LotteryResult } from '@core/mongodb/schemas/lottery-result.schema';
+import { Cron } from '@nestjs/schedule'; // Import thêm Cron
 
 export class LotteryScheduleService {
 	private readonly logger = new Logger(LotteryScheduleService.name);
@@ -20,15 +22,69 @@ export class LotteryScheduleService {
 		@Inject() private readonly firebaseService: FirebaseService,
 	) {}
 
-	@OnEvent('lottery.result.updated')
-	async handleLotteryUpdate(payload: LotteryUpdatePayload) {
-		if (!payload.isFinished) {
-			return;
-		}
+	// --- 1. JOBS ĐỊNH KỲ BẮN NOTI THEO TOPIC ---
+
+	@Cron('0 15 16 * * *') // 16:15 hàng ngày
+	async notifySouthStart() {
+		this.logger.log('Sending start notification for LOTTERY_SOUTH');
+		await this.firebaseService.sendNotificationTopicFCM(TOPIC_NAME_ENUM.LOTTERY_SOUTH, {
+			notification: {
+				title: 'Xổ số Miền Nam sắp bắt đầu! 🕒',
+				body: 'Đã đến giờ quay thưởng miền Nam hôm nay. Chúc bạn may mắn!',
+			},
+			data: { screen: 'Result', region: 'south', tabIndex: '2' },
+		});
+	}
+
+	@Cron('0 15 17 * * *') // 17:15 hàng ngày
+	async notifyCentralStart() {
+		this.logger.log('Sending start notification for LOTTERY_CENTRAL');
+		await this.firebaseService.sendNotificationTopicFCM(TOPIC_NAME_ENUM.LOTTERY_CENTRAL, {
+			notification: {
+				title: 'Xổ số Miền Trung sắp bắt đầu! 🕒',
+				body: 'Đã đến giờ quay thưởng miền Trung hôm nay. Chúc bạn may mắn!',
+			},
+			data: { screen: 'Result', region: 'central', tabIndex: '1' },
+		});
+	}
+
+	@Cron('0 15 18 * * *') // 18:15 hàng ngày (Giờ MB thường quay lúc 18h15)
+	async notifyNorthStart() {
+		this.logger.log('Sending start notification for LOTTERY_NORTH');
+		await this.firebaseService.sendNotificationTopicFCM(TOPIC_NAME_ENUM.LOTTERY_NORTH, {
+			notification: {
+				title: 'Xổ số Miền Bắc sắp bắt đầu! 🕒',
+				body: 'Đã đến giờ quay thưởng miền Bắc hôm nay. Chúc bạn may mắn!',
+			},
+			data: { screen: 'Result', region: 'north', tabIndex: '0' },
+		});
+	}
+
+	// --- 2. XỬ LÝ KHI CÓ KẾT QUẢ (EVENT) ---
+
+	@OnEvent('lottery.finished')
+	async handleLotteryUpdate(payload: LotteryResult) {
+		if (!payload.isFinished) return;
 
 		this.logger.log(`Processing notifications for ${payload.station} on ${payload.date}`);
 
-		// 1. Tìm tất cả vé đang chờ của đài này, ngày này
+		// A. BẮN THÔNG BÁO CHUNG CHO TOPIC CỦA ĐÀI/MIỀN (Cho những người không có vé nhưng muốn hóng kết quả)
+		// Giả sử TOPIC được đặt tên theo Region: LOTTERY_SOUTH, LOTTERY_NORTH...
+		const regionTopic = `LOTTERY_${payload.region.toUpperCase()}`;
+		await this.firebaseService.sendNotificationTopicFCM(regionTopic, {
+			notification: {
+				title: `Đã có kết quả đài ${payload.station}! 🏆`,
+				body: `Kết quả xổ số đài ${payload.station} ngày ${payload.date} đã được cập nhật đầy đủ. Bấm để xem ngay!`,
+			},
+			data: {
+				screen: 'Result',
+				date: payload.date,
+				station: payload.station,
+				tabIndex: payload.region === 'north' ? '0' : payload.region === 'central' ? '1' : '2',
+			},
+		});
+
+		// B. XỬ LÝ VÉ CÁ NHÂN (Giữ nguyên logic cũ của bạn)
 		const pendingTickets = await this.ticketRepo.findAll({
 			date: payload.date,
 			station: payload.station,
@@ -38,12 +94,11 @@ export class LotteryScheduleService {
 
 		for (const ticket of pendingTickets) {
 			try {
-				// 2. Tính toán kết quả
 				const winDetails = this.ticketService.calculateWinning(
 					ticket.code,
 					payload.prizes,
 					ticket.region,
-					ticket.specialCode || '', // Đảm bảo truyền specialCode cho Miền Bắc
+					ticket.specialCode || '',
 				);
 
 				const status = winDetails.length > 0 ? WIN_STATUS_ENUM.WIN : WIN_STATUS_ENUM.LOSE;
@@ -56,7 +111,6 @@ export class LotteryScheduleService {
 					}, 0);
 				}
 
-				// 3. Cập nhật Ticket vào DB
 				await this.ticketRepo.findOneAndUpdate(
 					{ _id: ticket._id },
 					{
@@ -67,46 +121,38 @@ export class LotteryScheduleService {
 					},
 				);
 
-				// 4. Lấy thông tin User để gửi Noti
 				const user = await this.userRepo.findOneById(String(ticket.userId));
-				const userData = user?.toObject();
 				if (!user) continue;
 
-				// Nội dung thông báo
 				const title =
 					status === WIN_STATUS_ENUM.WIN
 						? 'Chúc mừng! Bạn đã trúng giải 🎉'
-						: 'Kết quả xổ số đài ' + ticket.station;
+						: `Kết quả xổ số đài ${ticket.station}`;
 				const body =
 					status === WIN_STATUS_ENUM.WIN
 						? `Vé số ${ticket.code} của bạn đã trúng ${totalWinAmount.toLocaleString()}đ. Nhấn để xem chi tiết!`
 						: `Rất tiếc, vé số ${ticket.code} của bạn không trúng thưởng lần này. Chúc bạn may mắn lần sau!`;
 
-				// 5. Lưu vào Collection Notification (Lịch sử thông báo trong App)
 				await this.notificationRepo.add({
 					userId: ticket.userId,
 					title,
 					body,
-					type: 'TICKET_RESULT',
+					type: TOPIC_NAME_ENUM.TICKET_RESULT,
 					data: { ticketId: ticket._id.toString(), screen: 'TicketDetail' },
 					isRead: false,
 				});
 
-				// 6. Gửi Push Notification qua Firebase nếu user có bật settings và có token
-				if (userData?.settingNotifications?.ticketResult && userData.fcmToken) {
+				if (user?.settingNotifications?.ticketResult && user.fcmToken) {
 					const messagePayload = {
 						notification: { title, body },
 						data: {
-							type: 'TICKET_RESULT',
+							type: TOPIC_NAME_ENUM.TICKET_RESULT,
 							ticketId: ticket._id.toString(),
 							screen: 'TicketDetail',
 						},
 					};
-
-					// Gửi đến tất cả thiết bị của User đó
-					// this.firebaseService.sendNotification(token, messagePayload)
-
-					// await Promise.all(sendPromises);
+					// Không await để vòng lặp chạy nhanh hơn
+					this.firebaseService.sendNotification(user.fcmToken, messagePayload);
 				}
 			} catch (error) {
 				this.logger.error(`Error processing ticket ${ticket._id}: ${error.message}`);
