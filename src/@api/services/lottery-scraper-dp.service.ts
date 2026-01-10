@@ -50,7 +50,9 @@ export class LotteryScraperDpService {
 
 			if (!data || !Array.isArray(data)) return;
 
-			await Promise.all(data.map(item => this.syncStationData(item, regionName as any)));
+			for (const item of data) {
+				await this.syncStationData(item, regionName as any);
+			}
 		} catch (error) {
 			this.logger.error(`Error scraping ${regionName}: ${error.message}`);
 		}
@@ -61,7 +63,10 @@ export class LotteryScraperDpService {
 		const regex = /\(([^)]+)\)/;
 		const match = rawName.match(regex);
 
-		const station = match ? match[1] : rawName;
+		let station = match ? match[1] : rawName;
+		if (station === 'TPHCM') {
+			station = 'TP.HCM';
+		}
 		const date = moment().format('DD-MM-YYYY');
 		const redisKey = `lottery_live:${region}:${station}:${date}`;
 
@@ -76,9 +81,20 @@ export class LotteryScraperDpService {
 		const oldPrizesStr = await this.redisCache.get(redisKey);
 		const oldPrizes = oldPrizesStr ? JSON.parse(oldPrizesStr) : null;
 
+		const oldNumbersCount = oldPrizes ? this.countNumbers(oldPrizes) : 0;
+		const newNumbersCount = this.countNumbers(currentPrizes);
+
+		if (newNumbersCount <= oldNumbersCount) {
+			isChange = false;
+			return;
+		} else {
+			isChange = true;
+		}
+
 		if (currentPrizes.specialCode && oldPrizes && oldPrizes.specialCode !== currentPrizes.specialCode) {
 			isChange = true;
 		}
+
 		// 3. Tìm các thay đổi (Số mới nhảy)
 		const changes = this.getChanges(oldPrizes, currentPrizes);
 
@@ -97,6 +113,7 @@ export class LotteryScraperDpService {
 			this.eventEmitter.emit('lottery.result.updated', payload);
 
 			// Cập nhật Redis
+
 			await this.redisCache.set(redisKey, JSON.stringify(currentPrizes), 3600); // TTL 1 giờ
 
 			// Kỹ thuật nâng cao: Ngưng spam 30s nếu chưa xong hẳn
@@ -235,4 +252,10 @@ export class LotteryScraperDpService {
 		// 2. Nối các số bằng dấu "-" và cộng hậu tố phía sau
 		return numbers.length > 0 ? `${numbers.join('-')} ${suffix}` : rawCodes;
 	};
+
+	private countNumbers(prizes: any): number {
+		return Object.values(prizes)
+			.flat()
+			.filter(v => v !== '*' && v !== '').length;
+	}
 }
