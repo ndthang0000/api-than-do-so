@@ -24,7 +24,7 @@ jobs:
 
             nvm use 20
 
-            cd ~/apps/api-thandoso-dev/
+            cd ~/apps/api-thandoso-dev/api-than-do-so
 
             git fetch origin
             git checkout dev
