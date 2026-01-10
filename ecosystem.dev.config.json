@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "name": "develop-api-than-do-so",
+      "script": "node dist/main",
+      "instances": "1",
+      "autorestart": true,
+      "watch": false,
+      "time": true,
+      "node_args": "--max-old-space-size=3072",
+      "env": {
+        "NODE_ENV": "develop"
+      }
+    }
+  ]
+}
