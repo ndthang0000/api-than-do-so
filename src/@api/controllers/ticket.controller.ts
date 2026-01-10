@@ -30,11 +30,13 @@ export class TicketController {
 	constructor(private readonly ticketService: TicketService) {}
 
 	@Get('/paginate')
-	async paginate(@Query() dto: PaginateTicketDto) {
+	@ApiBearerAuth()
+	@UseGuards(AuthGuard)
+	async paginate(@Query() dto: PaginateTicketDto, @Request() req: RequestWithUser) {
 		const enumSort = Object.values(TICKET_SORT_ENUM);
 		const { sortBy = 'createdAt:asc', dateFrom, dateTo } = dto;
 
-		let filter = {};
+		let filter = { userId: new Types.ObjectId(req.user.id) };
 
 		if (dateFrom || dateTo) {
 			filter['createdAt'] = {
@@ -50,7 +52,7 @@ export class TicketController {
 			throw new HttpException('Invalid sortBy', HttpStatus.BAD_REQUEST);
 		}
 		const orderBy = ConvertSortBy(sortBy);
-
+		console.log(filter);
 		const data = await this.ticketService.paginateTicket({
 			page: dto.page,
 			limit: dto.limit,

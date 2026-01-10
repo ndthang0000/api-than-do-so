@@ -62,7 +62,7 @@ export class LotteryResultService {
 					region: region as Region,
 					date,
 					station: st,
-					isLive: true, // Đánh dấu đang lấy từ cache live
+					isFinished: !cachedData.includes('*'), // Đánh dấu đang lấy từ cache live
 				});
 				continue;
 			}

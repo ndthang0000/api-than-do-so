@@ -89,7 +89,10 @@ export class TicketService {
 		}
 	}
 
-	async processTicket(dto: CheckTicketDto, userId: string): Promise<any> {
+	async processTicket(
+		dto: CheckTicketDto,
+		userId: string,
+	): Promise<{ ticket: Ticket; winDetails: string[]; status: string }> {
 		// Lấy kết quả từ 3 nguồn (Cache -> DB -> Default)
 		const results = await this.lotteryResultService.getLiveLotteryResult(dto.region, dto.date, dto.station);
 		const lottery = results[0];
@@ -131,7 +134,7 @@ export class TicketService {
 		return { ticket, winDetails, status };
 	}
 
-	private calculateWinning(ticketCode: string, prizes: any, region: string, userSpecialCode: string): string[] {
+	calculateWinning(ticketCode: string, prizes: any, region: string, userSpecialCode: string): string[] {
 		const wins: string[] = [];
 
 		// --- LOGIC DÒ CHUNG CHO TẤT CẢ CÁC MIỀN ---
@@ -195,7 +198,7 @@ export class TicketService {
 		return prizes.DB[0] === '*';
 	}
 
-	private getRandomMessage(status: string): string {
+	getRandomMessage(status: string): string {
 		const messages = LOTTERY_MESSAGES[status] || LOTTERY_MESSAGES.PENDING;
 		const randomIndex = Math.floor(Math.random() * messages.length);
 		return messages[randomIndex];

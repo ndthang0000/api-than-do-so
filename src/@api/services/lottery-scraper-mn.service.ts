@@ -116,7 +116,7 @@ export class LotteryScraperService implements OnModuleInit {
 									specialCode: '',
 								},
 								type: type,
-								isLive: false,
+								isFinished: false,
 							};
 
 							// Lấy tất cả các dòng giải thưởng
@@ -141,7 +141,7 @@ export class LotteryScraperService implements OnModuleInit {
 								});
 
 							// Kiểm tra xem có đang LIVE không (nếu có giải chứa dấu "...")
-							prizeData.isLive = JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
+							prizeData.isFinished = !JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
 
 							results.push(prizeData);
 						});
@@ -169,7 +169,7 @@ export class LotteryScraperService implements OnModuleInit {
 							G7: [],
 							specialCode: '', // Thêm trường riêng cho mã đặc biệt của XSMB
 						},
-						isLive: false,
+						isFinished: false,
 						type: '',
 					};
 					$(container)
@@ -196,7 +196,7 @@ export class LotteryScraperService implements OnModuleInit {
 								}
 							}
 						});
-					prizeData.isLive = JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
+					prizeData.isFinished = !JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
 					results.push(prizeData);
 				});
 			}
@@ -251,7 +251,7 @@ export class LotteryScraperService implements OnModuleInit {
 					region: res.region as 'north' | 'central' | 'south',
 					station: res.station,
 					prizes: res.prizes,
-					isLive: res.isLive,
+					isFinished: res.isFinished,
 					changes: changes,
 				};
 				this.eventEmitter.emit('lottery.result.updated', payload);
@@ -267,7 +267,7 @@ export class LotteryScraperService implements OnModuleInit {
 						},
 						{
 							prizes: res.prizes,
-							isLive: res.isLive,
+							isFinished: res.isFinished,
 							type: res.type,
 						},
 						{ new: true },
@@ -315,7 +315,7 @@ export class LotteryScraperService implements OnModuleInit {
 				G8: ['26'],
 				specialCode: '',
 			},
-			isLive: true,
+			isFinished: true,
 			changes: [
 				{
 					rank: 'G1',
@@ -340,7 +340,7 @@ export class LotteryScraperService implements OnModuleInit {
 				G8: ['19'],
 				specialCode: '',
 			},
-			isLive: false,
+			isFinished: false,
 			changes: [
 				{
 					rank: 'G3',
@@ -365,7 +365,7 @@ export class LotteryScraperService implements OnModuleInit {
 				G8: ['19'],
 				specialCode: '',
 			},
-			isLive: false,
+			isFinished: false,
 			changes: [
 				{
 					rank: 'G2',
@@ -390,7 +390,7 @@ export class LotteryScraperService implements OnModuleInit {
 				G8: ['31'],
 				specialCode: '',
 			},
-			isLive: false,
+			isFinished: false,
 			changes: [
 				{
 					rank: 'G4',
@@ -493,7 +493,7 @@ export class LotteryScraperService implements OnModuleInit {
 									specialCode: '',
 								},
 								type: type,
-								isLive: false,
+								isFinished: false,
 							};
 
 							// Lấy tất cả các dòng giải thưởng
@@ -518,7 +518,7 @@ export class LotteryScraperService implements OnModuleInit {
 								});
 
 							// Kiểm tra xem có đang LIVE không (nếu có giải chứa dấu "...")
-							prizeData.isLive = JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
+							prizeData.isFinished = !JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
 
 							results.push(prizeData);
 						});
@@ -546,7 +546,7 @@ export class LotteryScraperService implements OnModuleInit {
 							G7: [],
 							specialCode: '', // Thêm trường riêng cho mã đặc biệt của XSMB
 						},
-						isLive: false,
+						isFinished: false,
 						type: '',
 					};
 					$(container)
@@ -573,7 +573,7 @@ export class LotteryScraperService implements OnModuleInit {
 								}
 							}
 						});
-					prizeData.isLive = JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
+					prizeData.isFinished = !JSON.stringify(prizeData).includes('*'); // TODO: Cần cách kiểm tra chính xác hơn nếu có thể
 					results.push(prizeData);
 				});
 			}

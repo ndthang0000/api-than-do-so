@@ -29,7 +29,7 @@ export class LotteryResult {
 	};
 
 	@Prop({ default: false })
-	isLive: boolean;
+	isFinished: boolean;
 
 	@Prop({ default: null, type: String, required: false })
 	type?: string;

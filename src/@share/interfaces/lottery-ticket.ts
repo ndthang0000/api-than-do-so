@@ -131,7 +131,7 @@ export const createDefaultLotteryResult = (region: Region, date: string, station
 		region,
 		station,
 		prizes: region === 'north' ? prizesNorth : prizesSouthAndCentral,
-		isLive: false,
+		isFinished: false,
 		type: '', // Có thể map theo quy định mã đài của bạn
 		createdAt: new Date(),
 		updatedAt: new Date(),

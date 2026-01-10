@@ -31,12 +31,12 @@ export class LotteryScraperDpService {
 		await this.processRegion('2', 'south');
 	}
 
-	@Cron('*/1 14-40 17 * * *') // Miền Trung: 17:15 - 17:40
+	@Cron('*/2 14-40 17 * * *') // Miền Trung: 17:15 - 17:40
 	async handleCentralLive() {
 		await this.processRegion('3', 'central');
 	}
 
-	@Cron('*/1 14-40 18 * * *') // Miền Bắc: 18:15 - 18:40
+	@Cron('*/2 14-40 18 * * *') // Miền Bắc: 18:15 - 18:40
 	async handleNorthLive() {
 		await this.processRegion('1', 'north');
 	}
@@ -89,7 +89,7 @@ export class LotteryScraperDpService {
 				region: region,
 				station: station,
 				prizes: currentPrizes,
-				isLive: !isFinished,
+				isFinished: isFinished,
 				changes: changes,
 			};
 
@@ -109,7 +109,7 @@ export class LotteryScraperDpService {
 				region: region,
 				station: station,
 				prizes: currentPrizes,
-				isLive: false,
+				isFinished: true,
 				type: '',
 			};
 			const existing = await this.lotteryRepository.findOne({
@@ -120,7 +120,7 @@ export class LotteryScraperDpService {
 			if (existing) {
 				await this.lotteryRepository.findOneAndUpdate(
 					{ date: dbPayload.date, station: dbPayload.station, region: dbPayload.region },
-					{ prizes: dbPayload.prizes, isLive: dbPayload.isLive, type: dbPayload.type },
+					{ prizes: dbPayload.prizes, isFinished: dbPayload.isFinished, type: dbPayload.type },
 					{ new: true },
 				);
 			} else {

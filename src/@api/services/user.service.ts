@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from '@dto/user/register-user.dto';
 import moment from 'moment';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserService {
@@ -69,5 +70,30 @@ export class UserService {
 
 	async getUserByEmail(email: string): Promise<UserDocument | null> {
 		return this.userRepo.findOne({ email });
+	}
+
+	async updateNotificationSettings(userId: string, fcmToken: string, settings: any): Promise<UserDocument | null> {
+		await this.userRepo.updateOne(
+			{ _id: new Types.ObjectId(userId) },
+			{
+				$set: {
+					settingNotifications: settings,
+					fcmToken: fcmToken,
+				},
+			},
+		);
+		return this.userRepo.findOne({ _id: new Types.ObjectId(userId) });
+	}
+
+	@OnEvent('fcm.token.expired')
+	async handleFcmTokenExpired(fcmToken: string) {
+		await this.userRepo.updateMultiple(
+			{ fcmToken: fcmToken },
+			{
+				$set: {
+					fcmToken: null,
+				},
+			},
+		);
 	}
 }

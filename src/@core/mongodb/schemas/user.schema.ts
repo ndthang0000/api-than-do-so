@@ -44,6 +44,18 @@ export class User {
 
 	@Prop({ required: true, unique: true })
 	deviceId: string;
+
+	@Prop({ required: false })
+	fcmToken?: string;
+
+	@Prop({ required: false, type: Object })
+	settingNotifications?: {
+		ticketResult?: boolean;
+		northResult?: boolean;
+		southResult?: boolean;
+		centralResult?: boolean;
+		system?: boolean;
+	};
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

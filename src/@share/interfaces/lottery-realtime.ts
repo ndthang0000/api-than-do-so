@@ -5,7 +5,7 @@ export interface LotteryUpdatePayload {
 	region: Region;
 	date: string; // DD-MM-YYYY
 	station: string; // Tên đài, ví dụ: "Trà Vinh"
-	isLive: boolean;
+	isFinished: boolean;
 	prizes: Record<string, string[] | string>;
 	changes: Array<{
 		rank: string; // Ví dụ: "G4"

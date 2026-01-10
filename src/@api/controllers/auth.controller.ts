@@ -4,6 +4,7 @@ import { AuthService } from '@service/auth.service';
 import { responseData } from '@share/interfaces/response-face';
 import { FirebaseService } from '@core/infrastructure/firebase-admin.service';
 import { DeviceLoginDto, LoginDto, SocialDto } from '@dto/auth/login.dto';
+import { RefreshTokenDto } from '@dto/auth/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -34,7 +35,7 @@ export class AuthController {
 	}
 
 	@Post('/refresh-token')
-	async refreshToken(@Body() dto: { refreshToken: string }) {
+	async refreshToken(@Body() dto: RefreshTokenDto) {
 		const token = await this.authService.refreshToken(dto.refreshToken);
 		return responseData(token);
 	}

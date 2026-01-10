@@ -109,7 +109,7 @@ export class AuthService {
 		const { deviceId, signature, timestamp } = dto;
 		const APP_CRYPTO_KEY = envData.cryptoKey;
 		const now = Date.now();
-		if (now - timestamp > 5 * 60 * 1000) {
+		if (now - timestamp > 3 * 60 * 1000) {
 			throw new UnauthorizedException('Expired request');
 		}
 
@@ -127,6 +127,13 @@ export class AuthService {
 				code: this.userService.generateCodeUser(),
 				deviceId: deviceId,
 				role: USER_ROLE_ENUM.GUEST,
+				settingNotifications: {
+					ticketResult: false,
+					northResult: false,
+					southResult: false,
+					centralResult: false,
+					system: false,
+				},
 			});
 		}
 		const session = uuidv4();
