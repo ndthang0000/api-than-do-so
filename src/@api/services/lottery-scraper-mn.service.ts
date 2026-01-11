@@ -95,7 +95,7 @@ export class LotteryScraperService implements OnModuleInit {
 							if (stationName === 'TP. HCM') {
 								stationName = 'TP.HCM';
 							} else if (stationName === 'Thừa T. Huế') {
-								stationName = 'TT-Huế';
+								stationName = 'Huế';
 							}
 							const type = $(table).find('.loaive').text().trim();
 							if (!stationName) return;

@@ -71,13 +71,13 @@ export const LOTTERY_SCHEDULE: LotteryScheduleEntry[] = [
 		time: '17:15',
 		end: '17h35',
 		schedule: [
-			{ date: 'monday', provinces: ['TT-Huế', 'Phú Yên'] },
+			{ date: 'monday', provinces: ['Huế', 'Phú Yên'] },
 			{ date: 'tuesday', provinces: ['Đắk Lắk', 'Quảng Nam'] },
 			{ date: 'wednesday', provinces: ['Đà Nẵng', 'Khánh Hòa'] },
 			{ date: 'thursday', provinces: ['Bình Định', 'Quảng Trị', 'Quảng Bình'] },
 			{ date: 'friday', provinces: ['Gia Lai', 'Ninh Thuận'] },
 			{ date: 'saturday', provinces: ['Đà Nẵng', 'Quảng Ngãi', 'Đắk Nông'] },
-			{ date: 'sunday', provinces: ['Khánh Hòa', 'Kon Tum', 'TT-Huế'] },
+			{ date: 'sunday', provinces: ['Khánh Hòa', 'Kon Tum', 'Huế'] },
 		],
 	},
 
