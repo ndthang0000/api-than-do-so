@@ -56,6 +56,18 @@ export class User {
 		centralResult?: boolean;
 		system?: boolean;
 	};
+
+	@Prop({ required: false, type: Object })
+	settingApp: {
+		theme?: string;
+		language?: string;
+		showLotoTable?: boolean;
+		isVoiceEnabled?: boolean;
+		isMusicEnabled?: boolean;
+		fontSize?: string;
+		highlightHead: string[];
+		highlightTail: string[];
+	};
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

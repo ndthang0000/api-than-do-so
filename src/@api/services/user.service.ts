@@ -38,16 +38,21 @@ export class UserService {
 		return this.userRepo.findOne({ _id: new Types.ObjectId(id) });
 	}
 
-	async updateUser(id: string, updateDto: UpdateUserDto): Promise<User | undefined> {
+	async updateUser(id: string, updateDto: UpdateUserDto): Promise<User | null> {
 		const findUser = await this.userRepo.findOne({ _id: new Types.ObjectId(id) });
+
 		if (!findUser) {
 			throw new BadRequestException('User not found');
 		}
 		if (updateDto.password) {
 			updateDto.password = await bcrypt.hash(updateDto.password, 10);
 		}
-		await this.userRepo.updateOne({ _id: new Types.ObjectId(id) }, updateDto);
-		return findUser;
+
+		updateDto.settingApp = {
+			...(findUser.settingApp || {}),
+			...(updateDto.settingApp as any),
+		};
+		return await this.userRepo.findOneAndUpdate({ _id: new Types.ObjectId(id) }, updateDto);
 	}
 
 	async deleteUser(id: string): Promise<boolean> {
