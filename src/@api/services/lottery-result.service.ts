@@ -4,7 +4,6 @@ import { LotteryResultRepository } from '@core/mongodb/repository/lottery-result
 import { Types } from 'mongoose';
 import { createDefaultLotteryResult, LOTTERY_SCHEDULE, Region } from '@share/interfaces/lottery-ticket';
 import RedisCache from '@core/infrastructure/redis.cache';
-import { TicketRepository } from '@core/mongodb/repository/ticket.repository';
 
 @Injectable()
 export class LotteryResultService {

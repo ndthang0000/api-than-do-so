@@ -1,7 +1,6 @@
 import { LiveLotteryResultDto } from '@dto/lottery-result/live-lottery-result.dto';
-import { Body, Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-
 import { LotteryResultService } from '@service/lottery-result.service';
 import { DrawStatus, LOTTERY_SCHEDULE } from '@share/interfaces/lottery-ticket';
 import { responseData, responseMessage } from '@share/interfaces/response-face';

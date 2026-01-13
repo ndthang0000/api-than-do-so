@@ -1,5 +1,4 @@
 import { Body, Controller, Post } from '@nestjs/common';
-
 import { AuthService } from '@service/auth.service';
 import { responseData } from '@share/interfaces/response-face';
 import { FirebaseService } from '@core/infrastructure/firebase-admin.service';
