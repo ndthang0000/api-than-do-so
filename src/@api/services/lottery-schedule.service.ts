@@ -10,6 +10,7 @@ import { FirebaseService } from '@core/infrastructure/firebase-admin.service';
 import { TOPIC_NAME_ENUM } from '@share/constants/notification-enum';
 import { LotteryResult } from '@core/mongodb/schemas/lottery-result.schema';
 import { Cron } from '@nestjs/schedule'; // Import thêm Cron
+import { BaseMessage } from 'firebase-admin/messaging';
 
 export class LotteryScheduleService {
 	private readonly logger = new Logger(LotteryScheduleService.name);
@@ -30,7 +31,33 @@ export class LotteryScheduleService {
 		await this.firebaseService.sendNotificationTopicFCM(TOPIC_NAME_ENUM.LOTTERY_SOUTH, {
 			notification: {
 				title: 'Xổ số Miền Nam sắp bắt đầu! 🕒',
-				body: 'Đã đến giờ quay thưởng miền Nam hôm nay. Chúc bạn may mắn!',
+				body: 'Đã đến giờ quay thưởng miền Nam hôm nay. Chúc bạn may mắn cùng với Thần dò số nhé!',
+			},
+			android: {
+				priority: 'high',
+				notification: {
+					channelId: 'default_channel_id',
+					priority: 'max',
+					visibility: 'public', // Hiển thị nội dung ngay cả khi khóa màn hình
+					clickAction: 'fcm.ACTION_EVENT', // Cần thiết nếu dùng Flutter/một số thư viện RN cũ
+				},
+			},
+			apns: {
+				payload: {
+					aps: {
+						contentAvailable: true,
+						sound: 'default',
+						badge: 1, // Hiện số 1 ở icon app cho tò mò
+						alert: {
+							title: 'Xổ số Miền Nam sắp bắt đầu! 🕒',
+							body: '...',
+						},
+					},
+				},
+				headers: {
+					'apns-priority': '10',
+					'apns-push-type': 'alert', // Chỉ định rõ đây là loại cảnh báo
+				},
 			},
 			data: { screen: 'Result', region: 'south', tabIndex: '2' },
 		});
@@ -42,9 +69,29 @@ export class LotteryScheduleService {
 		await this.firebaseService.sendNotificationTopicFCM(TOPIC_NAME_ENUM.LOTTERY_CENTRAL, {
 			notification: {
 				title: 'Xổ số Miền Trung sắp bắt đầu! 🕒',
-				body: 'Đã đến giờ quay thưởng miền Trung hôm nay. Chúc bạn may mắn!',
+				body: 'Đã đến giờ quay thưởng miền Trung hôm nay. Chúc bạn may mắn cùng với Thần dò số nhé!',
 			},
 			data: { screen: 'Result', region: 'central', tabIndex: '1' },
+			android: {
+				priority: 'high',
+				notification: {
+					channelId: 'default_channel_id',
+					priority: 'max',
+					visibility: 'public', // Hiển thị nội dung ngay cả khi khóa màn hình
+					clickAction: 'fcm.ACTION_EVENT', // Cần thiết nếu dùng Flutter/một số thư viện RN cũ
+				},
+			},
+			apns: {
+				payload: {
+					aps: {
+						contentAvailable: true,
+						sound: 'default',
+					},
+				},
+				headers: {
+					'apns-priority': '10',
+				},
+			},
 		});
 	}
 
@@ -57,6 +104,26 @@ export class LotteryScheduleService {
 				body: 'Đã đến giờ quay thưởng miền Bắc hôm nay. Chúc bạn may mắn!',
 			},
 			data: { screen: 'Result', region: 'north', tabIndex: '0' },
+			android: {
+				priority: 'high',
+				notification: {
+					channelId: 'default_channel_id',
+					priority: 'max',
+					visibility: 'public', // Hiển thị nội dung ngay cả khi khóa màn hình
+					clickAction: 'fcm.ACTION_EVENT', // Cần thiết nếu dùng Flutter/một số thư viện RN cũ
+				},
+			},
+			apns: {
+				payload: {
+					aps: {
+						contentAvailable: true,
+						sound: 'default',
+					},
+				},
+				headers: {
+					'apns-priority': '10',
+				},
+			},
 		});
 	}
 
@@ -81,6 +148,26 @@ export class LotteryScheduleService {
 				date: payload.date,
 				station: payload.station,
 				tabIndex: payload.region === 'north' ? '0' : payload.region === 'central' ? '1' : '2',
+			},
+			android: {
+				priority: 'high',
+				notification: {
+					channelId: 'default_channel_id',
+					priority: 'max',
+					visibility: 'public', // Hiển thị nội dung ngay cả khi khóa màn hình
+					clickAction: 'fcm.ACTION_EVENT', // Cần thiết nếu dùng Flutter/một số thư viện RN cũ
+				},
+			},
+			apns: {
+				payload: {
+					aps: {
+						contentAvailable: true,
+						sound: 'default',
+					},
+				},
+				headers: {
+					'apns-priority': '10',
+				},
 			},
 		});
 
@@ -143,12 +230,21 @@ export class LotteryScheduleService {
 				});
 
 				if (user?.settingNotifications?.ticketResult && user.fcmToken) {
-					const messagePayload = {
+					const messagePayload: BaseMessage = {
 						notification: { title, body },
 						data: {
 							type: TOPIC_NAME_ENUM.TICKET_RESULT,
 							ticketId: ticket._id.toString(),
 							screen: 'TicketDetail',
+						},
+						android: {
+							priority: 'high',
+							notification: {
+								channelId: 'default_channel_id',
+								priority: 'max',
+								visibility: 'public', // Hiển thị nội dung ngay cả khi khóa màn hình
+								clickAction: 'fcm.ACTION_EVENT',
+							},
 						},
 					};
 					// Không await để vòng lặp chạy nhanh hơn
