@@ -68,14 +68,6 @@ export class TicketService {
 		// 3. Tìm lịch quay ngày đó
 		const dailySchedule = regionConfig.schedule.find(s => s.date === dayOfWeek);
 
-		// Riêng miền Bắc, bạn quy ước payload là "north"
-		if (region === 'north') {
-			if (station !== 'north') {
-				throw new BadRequestException(`Với miền Bắc, trường station phải là 'north'.`);
-			}
-			return;
-		}
-
 		// 4. SO SÁNH NGHIÊM NGẶT (STRICT COMPARISON)
 		// Không .toUpperCase(), không .trim(), khớp 100% từng ký tự
 		const isValidStation = dailySchedule?.provinces.includes(station);
