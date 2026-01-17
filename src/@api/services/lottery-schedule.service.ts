@@ -197,14 +197,14 @@ export class LotteryScheduleService {
 						return sum + (regionPrize[prizeName] || 0);
 					}, 0);
 				}
-
+				const message = this.ticketService.getRandomMessage(status);
 				await this.ticketRepo.findOneAndUpdate(
 					{ _id: ticket._id },
 					{
 						winStatus: status,
 						winDetails,
 						prizeMoney: totalWinAmount,
-						message: this.ticketService.getRandomMessage(status),
+						message: message,
 					},
 				);
 
@@ -213,12 +213,9 @@ export class LotteryScheduleService {
 
 				const title =
 					status === WIN_STATUS_ENUM.WIN
-						? 'Chúc mừng! Bạn đã trúng giải 🎉'
-						: `Kết quả xổ số đài ${ticket.station}`;
-				const body =
-					status === WIN_STATUS_ENUM.WIN
-						? `Vé số ${ticket.code} của bạn đã trúng ${totalWinAmount.toLocaleString()}đ. Nhấn để xem chi tiết!`
-						: `Rất tiếc, vé số ${ticket.code} của bạn không trúng thưởng lần này. Chúc bạn may mắn lần sau!`;
+						? `🎉🎉🎉Bất ngờ lớn...${ticket.code}`
+						: `Kết quả xổ của vé ${ticket.code} đã có!`;
+				const body = message;
 
 				await this.notificationRepo.add({
 					userId: ticket.userId,
