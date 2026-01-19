@@ -52,7 +52,7 @@ export class TicketController {
 			throw new HttpException('Invalid sortBy', HttpStatus.BAD_REQUEST);
 		}
 		const orderBy = ConvertSortBy(sortBy);
-		console.log(filter);
+
 		const data = await this.ticketService.paginateTicket({
 			page: dto.page,
 			limit: dto.limit,
