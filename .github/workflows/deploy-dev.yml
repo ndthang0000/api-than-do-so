@@ -26,9 +26,10 @@ jobs:
 
             cd ~/apps/api-thandoso-dev/api-than-do-so
 
-            git fetch origin
+            git fetch origin dev
             git checkout dev
-            git pull origin dev
+            # Ép nhánh dev ở local khớp hoàn toàn với bản vừa fetch về từ GitHub
+            git reset --hard origin/dev
 
             npm ci
             npm run build
