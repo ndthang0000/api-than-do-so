@@ -134,6 +134,12 @@ export class AuthService {
 					centralResult: false,
 					system: false,
 				},
+				settingApp: {
+					showLotoTable: true,
+					fontSize: 'MEDIUM',
+					isMusicEnabled: true,
+					isVoiceEnabled: true,
+				},
 			});
 		}
 		const session = uuidv4();

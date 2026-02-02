@@ -65,8 +65,8 @@ export class User {
 		isVoiceEnabled?: boolean;
 		isMusicEnabled?: boolean;
 		fontSize?: string;
-		highlightHead: string[];
-		highlightTail: string[];
+		highlightHead?: string[];
+		highlightTail?: string[];
 	};
 }
 

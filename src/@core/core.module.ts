@@ -22,10 +22,7 @@ import { LotteryLiveGateway } from './infrastructure/lottery-live.gateway';
 		MongooseModule.forFeature(allSchemas),
 
 		BullModule.forRoot({
-			redis: {
-				host: envData.redis.host,
-				port: envData.redis.port,
-			},
+			url: `redis://${envData.redis.host}:${envData.redis.port}`,
 		}),
 		EventEmitterModule.forRoot(),
 	],
